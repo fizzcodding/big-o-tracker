@@ -1,57 +1,65 @@
-📊 Big-O Tracker (v0.1)
 
-Its always trouble finding a great Big-O analasys so I made one a
-VS Code extension to estimate time & space complexity of Python code.
-Built for competitive programmers, learners, and people who actually care how their code scales.
+# Big-O-Tracker
 
-⚠️ v0.1 – Early version
-Results are best-effort heuristics, optimized for CP-style Python code.
+**Big-O-Tracker** is a VSCode extension that helps developers instantly analyze the **time complexity** of their code. No guesswork, no stress—just write code and see how efficient it is. Perfect for competitive programmers, students, and anyone obsessed with clean, optimized code.  
 
-Go to your side bar and click the big-o-tracker and open a python file and run analasys and thats it! 
+![VSCode](https://img.shields.io/badge/VSCode-Extension-blue) ![License](https://img.shields.io/badge/License-MIT-green)
 
 
-✨ Features
+---
 
-   -  🧠 Detects time complexity (Big-O) per function
-   -  💾 Estimates space complexity
-   -  🔁 Tracks:
-       +  Maximum loop nesting depth
-       +  Recursive self-calls
-   -  📌 Results shown directly in a VS Code sidebar panel
-   -  🐍 Python-only (for now)
-   -  ⚡ One-click analysis — no CLI, no extra setup
+## **Features** ✨
 
-🖱️ How to Use
+- **Real-time Big-O Analysis**: Select a function, class, or code block and get an estimate of its time complexity.   
+- **Easy to Use**: Minimal setup, analyze code straight from your editor.  
+- **Sidebar & Commands**: Run analysis with one click or a command palette shortcut.  
+- **Learning Tool**: Great for understanding algorithm efficiency while coding.  
 
-   - Open a Python file in VS Code
-   - Click the Big-O Tracker icon in the Activity Bar
-   - Press Analyze
-   - View complexity results per function in the sidebar
+---
 
-🧪 Example
-def foo(n):
-    for i in range(n):
-        for j in range(n):
-            print(i, j)
+## Installation 🛠️
 
-Result in sidebar:
-Function: foo
-  Time: O(n^2)
-  Loops: 2
-  Recursion: 0
-🧠 How It Works
+You have **two ways** to install Big-O Tracker:
 
-Uses Python’s AST (Abstract Syntax Tree)
+### 1. From VSCode Marketplace
+  -  Open VSCode.
+  -  Go to the **Extensions** panel (`Ctrl+Shift+X` / `Cmd+Shift+X`).
+ -  Search for `Big-O Tracker`.
+-   Click **Install**.
+ -   Reload VSCode if needed.
 
-Walks function bodies
+ ### 2. From VSIX file
+ -    Download `big-o-tracker.vsix`. 
+ -  Open VSCode.
+ -  Press `Ctrl+Shift+P` / `Cmd+Shift+P` → type `Extensions: Install from VSIX`.
+ -  Select the VSIX file → Install → Reload VSCode.
 
-Tracks:
+---
 
-Nested loops
+## Usage 💻
 
-Recursive self-calls
 
-Applies heuristic rules to estimate complexity
+Big-O Tracker works **for functions, classes, and even code blocks without functions**.  
 
-No runtime execution.
-Static analysis only → safe & fast.
+- Open the **Big-O-Tracker** panel in VSCode
+- Open the file of code you want to analyze
+- Click **Analyze**
+- Loops, Recursion etc will be shown and which function, classes will be shown and the time and space complaxity
+
+---
+## v0.1
+
+As for now the extension can only support python file. 
+
+--- 
+
+## Contributing 🤝
+
+Want more features or see a bug? 
+
+Just send emails to one of these emails
+
+- **frozeplaysminecraft@gmail.com**
+- **rocketcodefaiyaz@outlook.com**
+
+Or inbox me in X (fizz_codding) or Instagram (ice__fizz)
