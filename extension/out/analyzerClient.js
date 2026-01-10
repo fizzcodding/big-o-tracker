@@ -85,16 +85,12 @@ const child_process_1 = require("child_process");
 const path = __importStar(require("path"));
 function analyzeSource(sourceCode) {
     return new Promise((resolve, reject) => {
-        /**
-         * __dirname → extension/out
-         * go up twice → big-o-tracker/
-         */
-        const projectRoot = path.resolve(__dirname, "..", "..");
+        const extensionDir = path.resolve(__dirname, "..");
         const proc = (0, child_process_1.spawn)("python3", ["-m", "analyzer.main"], {
-            cwd: projectRoot, // ✅ contains analyzer/
+            cwd: extensionDir,
             env: {
                 ...process.env,
-                PYTHONPATH: projectRoot // ✅ makes imports bulletproof
+                PYTHONPATH: extensionDir
             }
         });
         let stdout = "";

@@ -1,16 +1,22 @@
 {
   "name": "big-o-tracker",
   "displayName": "Big-O Tracker",
+  "description": "Tracking your complexitys made easy! Analyze and monitor the time and space complexity of your functions directly within VSCode.",
+  "readme": "README.md",
   "publisher": "fizzcodding",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.85.0"
   },
   "main": "./out/extension.js",
+  "icon": "resources/icon.png",
+  "categories": ["Other"],
+
   "activationEvents": [
     "onCommand:big-o-tracker.openView",
     "onView:bigOView"
   ],
+
   "contributes": {
     "commands": [
       {
@@ -37,20 +43,40 @@
       ]
     }
   },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fizzcodding/big-o-tracker"
+  },
+
+  "keywords": [
+    "vscode",
+    "extension",
+    "big-o",
+    "complexity",
+    "time-complexity",
+    "space-complexity",
+    "tracker"
+  ],
+
   "files": [
     "out/**",
     "resources/**",
-    "src/analyzer/**",
+    "analyzer/**",
     "README.md",
     "LICENSE"
   ],
+
   "scripts": {
-    "compile": "tsc -p .",
-    "prepublishOnly": "npm run compile"
+    "compile": "tsc -p ."
   },
+
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0"
-  }
+  },
+  "details": "README.md",
+  "README": "README.md",
+  "license": "MIT"
 }

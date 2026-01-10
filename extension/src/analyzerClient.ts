@@ -59,20 +59,16 @@ import * as path from "path";
 
 export function analyzeSource(sourceCode: string): Promise<any[]> {
   return new Promise((resolve, reject) => {
-    /**
-     * __dirname → extension/out
-     * go up twice → big-o-tracker/
-     */
-    const projectRoot = path.resolve(__dirname, "..", "..");
+    const extensionDir = path.resolve(__dirname, "..");
 
     const proc = spawn(
       "python3",
       ["-m", "analyzer.main"],
       {
-        cwd: projectRoot, // ✅ contains analyzer/
+        cwd: extensionDir,
         env: {
           ...process.env,
-          PYTHONPATH: projectRoot // ✅ makes imports bulletproof
+          PYTHONPATH: extensionDir
         }
       }
     );
