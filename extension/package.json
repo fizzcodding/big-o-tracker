@@ -1,0 +1,39 @@
+{
+  "name": "big-o-tracker",        
+  "displayName": "Big-O Tracker", 
+  "version": "0.1.0",
+  "publisher": "fizzcodding",    
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "activationEvents": ["*"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bigOTracker",
+          "title": "Big-O Tracker",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "bigOTracker": [
+        {
+          "id": "bigOView",
+          "name": "Analysis",
+          "type": "webview"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ."
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0"
+  }
+}
