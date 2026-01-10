@@ -3,8 +3,8 @@ from .models import FunctionAnalysis
 from .complexity import estimate_time_complexity, estimate_space_complexity
 
 
-class FunctionVisitor(ast.NodeVisitor):
-    def __init__(self, func_name: str):
+class CodeVisitor(ast.NodeVisitor):
+    def __init__(self, func_name: str = None):
         self.func_name = func_name
         self.current_loop_depth = 0
         self.max_loop_depth = 0
@@ -28,39 +28,96 @@ class FunctionVisitor(ast.NodeVisitor):
         self.current_loop_depth -= 1
 
     def visit_Call(self, node):
-        if isinstance(node.func, ast.Name):
-            if node.func.id == self.func_name:
-                self.recursive_calls += 1
+        if self.func_name:
+            if isinstance(node.func, ast.Name):
+                if node.func.id == self.func_name:
+                    self.recursive_calls += 1
+            elif isinstance(node.func, ast.Attribute):
+                if isinstance(node.func.value, ast.Name) and node.func.value.id == "self":
+                    method_name = self.func_name.split(".")[-1]
+                    if node.func.attr == method_name:
+                        self.recursive_calls += 1
+        self.generic_visit(node)
+
+
+class ASTAnalyzer(ast.NodeVisitor):
+    def __init__(self):
+        self.results = []
+        self.current_class_name = None
+        self.has_functions_or_classes = False
+
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        self.has_functions_or_classes = True
+        full_name = f"{self.current_class_name}.{node.name}" if self.current_class_name else node.name
+
+        visitor = CodeVisitor(full_name)
+        visitor.visit(node)
+
+        big_o = estimate_time_complexity(visitor.max_loop_depth, visitor.recursive_calls)
+        space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+
+        self.results.append(
+            FunctionAnalysis(
+                name=full_name,
+                time_complexity=big_o,
+                space_complexity=space_o,
+                max_loop_depth=visitor.max_loop_depth,
+                recursive_calls=visitor.recursive_calls,
+            )
+        )
+
+        self.generic_visit(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef):
+        self.has_functions_or_classes = True
+        old_class_name = self.current_class_name
+        self.current_class_name = node.name
+        self.generic_visit(node)
+        self.current_class_name = old_class_name
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        self.has_functions_or_classes = True
+        full_name = f"{self.current_class_name}.{node.name}" if self.current_class_name else node.name
+
+        visitor = CodeVisitor(full_name)
+        visitor.visit(node)
+
+        big_o = estimate_time_complexity(visitor.max_loop_depth, visitor.recursive_calls)
+        space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+
+        self.results.append(
+            FunctionAnalysis(
+                name=full_name,
+                time_complexity=big_o,
+                space_complexity=space_o,
+                max_loop_depth=visitor.max_loop_depth,
+                recursive_calls=visitor.recursive_calls,
+            )
+        )
+
         self.generic_visit(node)
 
 
 def analyze_source(source: str) -> list[FunctionAnalysis]:
     tree = ast.parse(source)
-    results: list[FunctionAnalysis] = []
+    analyzer = ASTAnalyzer()
+    analyzer.visit(tree)
 
-    for node in tree.body:
-        if isinstance(node, ast.FunctionDef):
-            visitor = FunctionVisitor(node.name)
-            visitor.visit(node)
+    if not analyzer.has_functions_or_classes:
+        visitor = CodeVisitor()
+        visitor.visit(tree)
 
-            big_o = estimate_time_complexity(
-                visitor.max_loop_depth,
-                visitor.recursive_calls
+        big_o = estimate_time_complexity(visitor.max_loop_depth, visitor.recursive_calls)
+        space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+
+        analyzer.results.append(
+            FunctionAnalysis(
+                name="<main>",
+                time_complexity=big_o,
+                space_complexity=space_o,
+                max_loop_depth=visitor.max_loop_depth,
+                recursive_calls=visitor.recursive_calls,
             )
+        )
 
-            space_o = estimate_space_complexity(
-                visitor.recursive_calls,
-                visitor.max_loop_depth
-            )
-
-            results.append(
-                FunctionAnalysis(
-                    name=node.name,
-                    time_complexity=big_o,
-                    space_complexity=space_o,
-                    max_loop_depth=visitor.max_loop_depth,
-                    recursive_calls=visitor.recursive_calls,
-                )
-            )
-
-    return results
+    return analyzer.results

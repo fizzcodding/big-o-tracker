@@ -1,14 +1,23 @@
 {
-  "name": "big-o-tracker",        
-  "displayName": "Big-O Tracker", 
+  "name": "big-o-tracker",
+  "displayName": "Big-O Tracker",
+  "publisher": "fizzcodding",
   "version": "0.1.0",
-  "publisher": "fizzcodding",    
   "engines": {
     "vscode": "^1.85.0"
   },
-  "activationEvents": ["*"],
   "main": "./out/extension.js",
+  "activationEvents": [
+    "onCommand:big-o-tracker.openView",
+    "onView:bigOView"
+  ],
   "contributes": {
+    "commands": [
+      {
+        "command": "big-o-tracker.openView",
+        "title": "Open Big-O Tracker"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -28,8 +37,16 @@
       ]
     }
   },
+  "files": [
+    "out/**",
+    "resources/**",
+    "src/analyzer/**",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "compile": "tsc -p ."
+    "compile": "tsc -p .",
+    "prepublishOnly": "npm run compile"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
