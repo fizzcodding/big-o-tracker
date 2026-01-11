@@ -122,3 +122,4 @@ def analyze_source(source: str) -> list[FunctionAnalysis]:
 
     return analyzer.results
 
+

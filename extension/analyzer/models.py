@@ -8,3 +8,4 @@ class FunctionAnalysis:
     max_loop_depth: int
     recursive_calls: int
 
+
