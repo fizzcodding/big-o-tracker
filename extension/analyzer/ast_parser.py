@@ -6,10 +6,15 @@ from .complexity import estimate_time_complexity, estimate_space_complexity
 class CodeVisitor(ast.NodeVisitor):
     def __init__(self, func_name: str = None):
         self.func_name = func_name
+
         self.current_loop_depth = 0
         self.max_loop_depth = 0
-        self.recursive_calls = 0
 
+        self.recursive_calls = 0
+        self.current_recursive_calls = 0
+        self.max_recursive_calls_in_scope = 0
+
+    # -------- loops --------
     def visit_For(self, node):
         self._enter_loop()
         self.generic_visit(node)
@@ -27,18 +32,40 @@ class CodeVisitor(ast.NodeVisitor):
     def _exit_loop(self):
         self.current_loop_depth -= 1
 
+    # -------- recursion detection --------
+    def visit_FunctionDef(self, node):
+        prev = self.current_recursive_calls
+        self.current_recursive_calls = 0
+
+        self.generic_visit(node)
+
+        self.max_recursive_calls_in_scope = max(
+            self.max_recursive_calls_in_scope,
+            self.current_recursive_calls
+        )
+
+        self.current_recursive_calls = prev
+
     def visit_Call(self, node):
         if self.func_name:
+            # direct recursion
             if isinstance(node.func, ast.Name):
                 if node.func.id == self.func_name:
                     self.recursive_calls += 1
+                    self.current_recursive_calls += 1
+
+            # self.method() recursion
             elif isinstance(node.func, ast.Attribute):
-                if isinstance(node.func.value, ast.Name) and node.func.value.id == "self":
+                if (
+                    isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "self"
+                ):
                     method_name = self.func_name.split(".")[-1]
                     if node.func.attr == method_name:
                         self.recursive_calls += 1
-        self.generic_visit(node)
+                        self.current_recursive_calls += 1
 
+        self.generic_visit(node)
 
 class ASTAnalyzer(ast.NodeVisitor):
     def __init__(self):
