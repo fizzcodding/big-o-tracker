@@ -4,7 +4,7 @@
   "description": "Tracking your complexitys made easy! Analyze and monitor the time and space complexity of your functions directly within VSCode.",
   "readme": "README.md",
   "publisher": "fizzcodding",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.85.0"
   },
