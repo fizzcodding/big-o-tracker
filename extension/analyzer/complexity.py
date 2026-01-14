@@ -7,8 +7,17 @@ def estimate_time_complexity(
     has_loop_with_recursion: bool = False,
     has_mutually_exclusive_recursion: bool = False,
     has_builtin_sort: bool = False,
-    has_binary_search_pattern: bool = False
+    has_binary_search_pattern: bool = False,
+    enhanced_visitor=None  # Optional enhanced visitor for symbolic analysis
 ) -> str:
+    # If enhanced visitor is provided, use symbolic analysis
+    if enhanced_visitor is not None:
+        try:
+            from .enhanced_analyzer import compute_time_complexity
+            symbolic_comp = compute_time_complexity(enhanced_visitor)
+            return str(symbolic_comp)
+        except Exception:
+            pass  # Fall back to heuristic analysis
     # O(n log n) - built-in sort methods (check FIRST)
     if has_builtin_sort:
         return "O(n log n)"
@@ -77,7 +86,17 @@ def estimate_time_complexity(
     return f"O(n^{loop_depth})"
 
 
-def estimate_space_complexity(recursive_calls: int, max_loop_depth: int) -> str:
+def estimate_space_complexity(recursive_calls: int, max_loop_depth: int, enhanced_visitor=None) -> str:
+    # If enhanced visitor is provided, use symbolic analysis
+    if enhanced_visitor is not None:
+        try:
+            from .enhanced_analyzer import compute_space_complexity
+            symbolic_comp = compute_space_complexity(enhanced_visitor)
+            return str(symbolic_comp)
+        except Exception:
+            pass  # Fall back to heuristic analysis
+    
+    # Fallback heuristic
     if recursive_calls >= 1:
         if recursive_calls >= 2:
             return "O(n)"

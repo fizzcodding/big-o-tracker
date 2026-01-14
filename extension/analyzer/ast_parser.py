@@ -447,29 +447,41 @@ class ASTAnalyzer(ast.NodeVisitor):
         self.has_functions_or_classes = True
         full_name = f"{self.current_class_name}.{node.name}" if self.current_class_name else node.name
 
-        visitor = CodeVisitor(full_name)
-        visitor.visit(node)
-
-        big_o = estimate_time_complexity(
-            visitor.max_loop_depth, 
-            visitor.recursive_calls,
-            visitor.max_recursive_calls_in_single_path,
-            visitor.has_dividing_recursion,
-            visitor.has_dividing_loop,
-            visitor.has_loop_with_recursion,
-            visitor.has_mutually_exclusive_recursion,
-            visitor.has_builtin_sort,
-            visitor.has_binary_search_pattern
-        )
-        space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+        # Use enhanced analyzer (primary method)
+        try:
+            from .enhanced_analyzer import EnhancedCodeVisitor, compute_time_complexity, compute_space_complexity
+            enhanced_visitor = EnhancedCodeVisitor(full_name)
+            enhanced_visitor.visit(node)
+            big_o = str(compute_time_complexity(enhanced_visitor))
+            space_o = str(compute_space_complexity(enhanced_visitor))
+            max_loop_depth = len(enhanced_visitor.loops)
+            recursive_calls = enhanced_visitor.recursion_info.branching_factor
+        except Exception:
+            # Fallback to original heuristic analyzer
+            visitor = CodeVisitor(full_name)
+            visitor.visit(node)
+            big_o = estimate_time_complexity(
+                visitor.max_loop_depth, 
+                visitor.recursive_calls,
+                visitor.max_recursive_calls_in_single_path,
+                visitor.has_dividing_recursion,
+                visitor.has_dividing_loop,
+                visitor.has_loop_with_recursion,
+                visitor.has_mutually_exclusive_recursion,
+                visitor.has_builtin_sort,
+                visitor.has_binary_search_pattern
+            )
+            space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+            max_loop_depth = visitor.max_loop_depth
+            recursive_calls = visitor.recursive_calls
 
         self.results.append(
             FunctionAnalysis(
                 name=full_name,
                 time_complexity=big_o,
                 space_complexity=space_o,
-                max_loop_depth=visitor.max_loop_depth,
-                recursive_calls=visitor.recursive_calls,
+                max_loop_depth=max_loop_depth,
+                recursive_calls=recursive_calls,
             )
         )
 
@@ -486,21 +498,33 @@ class ASTAnalyzer(ast.NodeVisitor):
         self.has_functions_or_classes = True
         full_name = f"{self.current_class_name}.{node.name}" if self.current_class_name else node.name
 
-        visitor = CodeVisitor(full_name)
-        visitor.visit(node)
-
-        big_o = estimate_time_complexity(
-            visitor.max_loop_depth, 
-            visitor.recursive_calls,
-            visitor.max_recursive_calls_in_single_path,
-            visitor.has_dividing_recursion,
-            visitor.has_dividing_loop,
-            visitor.has_loop_with_recursion,
-            visitor.has_mutually_exclusive_recursion,
-            visitor.has_builtin_sort,
-            visitor.has_binary_search_pattern
-        )
-        space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+        # Use enhanced analyzer (primary method)
+        try:
+            from .enhanced_analyzer import EnhancedCodeVisitor, compute_time_complexity, compute_space_complexity
+            enhanced_visitor = EnhancedCodeVisitor(full_name)
+            enhanced_visitor.visit(node)
+            big_o = str(compute_time_complexity(enhanced_visitor))
+            space_o = str(compute_space_complexity(enhanced_visitor))
+            max_loop_depth = len(enhanced_visitor.loops)
+            recursive_calls = enhanced_visitor.recursion_info.branching_factor
+        except Exception:
+            # Fallback to original heuristic analyzer
+            visitor = CodeVisitor(full_name)
+            visitor.visit(node)
+            big_o = estimate_time_complexity(
+                visitor.max_loop_depth, 
+                visitor.recursive_calls,
+                visitor.max_recursive_calls_in_single_path,
+                visitor.has_dividing_recursion,
+                visitor.has_dividing_loop,
+                visitor.has_loop_with_recursion,
+                visitor.has_mutually_exclusive_recursion,
+                visitor.has_builtin_sort,
+                visitor.has_binary_search_pattern
+            )
+            space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+            max_loop_depth = visitor.max_loop_depth
+            recursive_calls = visitor.recursive_calls
 
         self.results.append(
             FunctionAnalysis(
@@ -521,29 +545,41 @@ def analyze_source(source: str) -> list[FunctionAnalysis]:
     analyzer.visit(tree)
 
     if not analyzer.has_functions_or_classes:
-        visitor = CodeVisitor()
-        visitor.visit(tree)
-
-        big_o = estimate_time_complexity(
-            visitor.max_loop_depth, 
-            visitor.recursive_calls,
-            visitor.max_recursive_calls_in_single_path,
-            visitor.has_dividing_recursion,
-            visitor.has_dividing_loop,
-            visitor.has_loop_with_recursion,
-            visitor.has_mutually_exclusive_recursion,
-            visitor.has_builtin_sort,
-            visitor.has_binary_search_pattern
-        )
-        space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+        # Try enhanced analyzer first
+        try:
+            from .enhanced_analyzer import EnhancedCodeVisitor, compute_time_complexity, compute_space_complexity
+            enhanced_visitor = EnhancedCodeVisitor()
+            enhanced_visitor.visit(tree)
+            big_o = str(compute_time_complexity(enhanced_visitor))
+            space_o = str(compute_space_complexity(enhanced_visitor))
+            max_loop_depth = 0
+            recursive_calls = 0
+        except Exception:
+            # Fallback to original heuristic analyzer
+            visitor = CodeVisitor()
+            visitor.visit(tree)
+            big_o = estimate_time_complexity(
+                visitor.max_loop_depth, 
+                visitor.recursive_calls,
+                visitor.max_recursive_calls_in_single_path,
+                visitor.has_dividing_recursion,
+                visitor.has_dividing_loop,
+                visitor.has_loop_with_recursion,
+                visitor.has_mutually_exclusive_recursion,
+                visitor.has_builtin_sort,
+                visitor.has_binary_search_pattern
+            )
+            space_o = estimate_space_complexity(visitor.recursive_calls, visitor.max_loop_depth)
+            max_loop_depth = visitor.max_loop_depth
+            recursive_calls = visitor.recursive_calls
 
         analyzer.results.append(
             FunctionAnalysis(
                 name="<main>",
                 time_complexity=big_o,
                 space_complexity=space_o,
-                max_loop_depth=visitor.max_loop_depth,
-                recursive_calls=visitor.recursive_calls,
+                max_loop_depth=max_loop_depth,
+                recursive_calls=recursive_calls,
             )
         )
 
