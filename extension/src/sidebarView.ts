@@ -73,50 +73,50 @@ import * as vscode from "vscode";
 import { analyzeSource } from "./analyzerClient";
 
 export class BigOSidebarView implements vscode.WebviewViewProvider {
-  public static readonly viewType = "bigOView";
-  private _view?: vscode.WebviewView;
+    public static readonly viewType = "bigOView";
+    private _view?: vscode.WebviewView;
 
-  resolveWebviewView(view: vscode.WebviewView, context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken) {
-    this._view = view;
+    resolveWebviewView(view: vscode.WebviewView, context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken) {
+        this._view = view;
 
-    view.webview.options = {
-      enableScripts: true,
-      localResourceRoots: []
-    };
+        view.webview.options = {
+            enableScripts: true,
+            localResourceRoots: []
+        };
 
-    // Set HTML immediately
-    view.webview.html = this.getHtmlForWebview(view.webview);
+        // Set HTML immediately
+        view.webview.html = this.getHtmlForWebview(view.webview);
 
-    // Handle messages from webview
-    view.webview.onDidReceiveMessage(async (msg) => {
-      if (msg.command !== "analyze") return;
+        // Handle messages from webview
+        view.webview.onDidReceiveMessage(async (msg) => {
+            if (msg.command !== "analyze") return;
 
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        view.webview.postMessage({ results: null, error: "❌ No active file" });
-        return;
-      }
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                view.webview.postMessage({ results: null, error: "❌ No active file" });
+                return;
+            }
 
-      if (editor.document.languageId !== "python") {
-        view.webview.postMessage({ results: null, error: "❌ Please open a Python file first" });
-        return;
-      }
+            if (editor.document.languageId !== "python") {
+                view.webview.postMessage({ results: null, error: "❌ Please open a Python file first" });
+                return;
+            }
 
-      try {
-        const source = editor.document.getText();
-        const results = await analyzeSource(source);
-        view.webview.postMessage({ results: results, error: null });
-      } catch (e: any) {
-        view.webview.postMessage({
-          results: null,
-          error: "❌ Error:\n" + e.toString()
+            try {
+                const source = editor.document.getText();
+                const results = await analyzeSource(source);
+                view.webview.postMessage({ results: results, error: null });
+            } catch (e: any) {
+                view.webview.postMessage({
+                    results: null,
+                    error: "❌ Error:\n" + e.toString()
+                });
+            }
         });
-      }
-    });
-  }
+    }
 
-  private getHtmlForWebview(webview: vscode.Webview): string {
-    return `<!DOCTYPE html>
+    private getHtmlForWebview(webview: vscode.Webview): string {
+        return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -269,5 +269,5 @@ export class BigOSidebarView implements vscode.WebviewViewProvider {
     </script>
 </body>
 </html>`;
-  }
+    }
 }

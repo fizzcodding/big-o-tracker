@@ -31,6 +31,7 @@ class PatternDetector(ast.NodeVisitor):
         self.max_recursive_calls_same_path = 0
         self.has_dividing_recursion = False
         self.has_loop = False
+        self.has_sqrt_loop = False  # NEW: Track sqrt in loop bounds
         self.has_dividing_recursion_with_loop = False
         self.has_backtracking_pattern = False
         self.has_append_pop = False
@@ -51,10 +52,42 @@ class PatternDetector(ast.NodeVisitor):
     def visit_For(self, node):
         self.has_loop = True
         self.loops_count += 1
+        
+        # Check for sqrt pattern in range: range(2, int(n**0.5) + 1) or range(2, int(sqrt(n)))
+        if isinstance(node.iter, ast.Call):
+            if isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':
+                # Check range arguments for sqrt
+                for arg in node.iter.args:
+                    if self._has_sqrt_pattern(arg):
+                        self.has_sqrt_loop = True
+        
         old_in_loop = self.in_loop
         self.in_loop = True
         self.generic_visit(node)
         self.in_loop = old_in_loop
+    
+    def _has_sqrt_pattern(self, node):
+        """Check if node contains sqrt or **0.5 pattern"""
+        if isinstance(node, ast.BinOp):
+            # Check for n**0.5
+            if isinstance(node.op, ast.Pow):
+                if isinstance(node.right, ast.Constant) and node.right.value == 0.5:
+                    return True
+            # Recursively check operands
+            return self._has_sqrt_pattern(node.left) or self._has_sqrt_pattern(node.right)
+        elif isinstance(node, ast.Call):
+            # Check for sqrt() or int(sqrt()) or int(n**0.5)
+            if isinstance(node.func, ast.Name) and node.func.id in ['sqrt', 'int']:
+                for arg in node.args:
+                    if self._has_sqrt_pattern(arg):
+                        return True
+            # Check for math.sqrt()
+            if isinstance(node.func, ast.Attribute) and node.func.attr == 'sqrt':
+                return True
+            return any(self._has_sqrt_pattern(arg) for arg in node.args)
+        elif isinstance(node, ast.UnaryOp):
+            return self._has_sqrt_pattern(node.operand)
+        return False
     
     def visit_While(self, node):
         self.has_loop = True
@@ -164,6 +197,11 @@ class PatternDetector(ast.NodeVisitor):
             time_comp = "O(n log n)"
             space_comp = "O(log n)"
         
+        # Rule 6.5: loop with sqrt bounds -> O(√n) or O(sqrt(n))
+        elif self.has_sqrt_loop and self.recursions_count == 0:
+            time_comp = "O(sqrt(n))"
+            space_comp = "O(1)"
+        
         # Rule 7: simple loop -> O(n)
         elif self.has_loop and self.recursions_count == 0:
             time_comp = "O(n)"
@@ -178,7 +216,21 @@ class PatternDetector(ast.NodeVisitor):
 
 
 def get_complexity_from_llm(code: str) -> Optional[Tuple[str, str, int, int]]:
-    """Use LLM (puter API) to analyze code when patterns don't match."""
+    """Use LLM (Groq API) to analyze code when patterns don't match."""
+    import os
+    
+    # Get API key from environment variable
+   
+    if not api_key:
+        # No API key - return None to fallback to AST
+        return None
+    
+    try:
+        from groq import Groq
+    except ImportError:
+        # groq package not installed - return None to fallback to AST
+        return None
+    
     prompt = """You are a static code analyzer.
 
 INPUT:
@@ -200,8 +252,7 @@ RULES (VERY IMPORTANT):
 - No bullet points.
 - No emojis.
 - No markdown.
-- If something does not exist, write "None".
-- Use standard Big-O notation only (e.g. O(n), O(n log n), O(2^n)).
+- If something does not exist, write "None". 
 - Count total loops (for, while, nested included).
 - Count recursive functions only if the function calls itself.
 
@@ -210,10 +261,30 @@ SOURCE CODE:
 """ + code + """
 <<<CODE_END>>>"""
     
-    # TODO: Implement puter API call
-    # For now, return None to indicate LLM is not available
-    # When puter API is available, implement HTTP request here
-    return None
+    try:
+        client = Groq(api_key=api_key)
+        
+        # Call Groq API with llama model (fast and accurate)
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            model="llama-3.3-70b-versatile",  # Fast and accurate model
+            temperature=0.1,  # Low temperature for consistent results
+            max_tokens=200,  # Short response expected
+        )
+        
+        response_text = chat_completion.choices[0].message.content
+        
+        # Parse the response
+        return parse_llm_response(response_text)
+        
+    except Exception as e:
+        # Any error - fallback to AST
+        return None
 
 
 def parse_llm_response(text: str) -> Tuple[str, str, int, int]:
